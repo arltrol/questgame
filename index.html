@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>The Sands of Fortune</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #111;
+      color: #f5f5dc;
+      font-family: Georgia, serif;
+    }
+    #game {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 20px;
+    }
+    #scene {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: contain;
+      border-radius: 8px;
+      display: block;
+    }
+    .btn-row {
+      margin-top: 20px;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #333;
+      color: #f5f5dc;
+      border: 2px solid #f5f5dc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #555;
+    }
+    #message {
+      margin-top: 20px;
+      font-size: 18px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <img id="scene" src="loadingscreen.png" alt="Loading screen" />
+    <div id="message"><p><em>Prepare thyself for 'The Sands of Fortune'</em></p></div>
+    <div class="btn-row" id="buttons">
+      <button onclick="startGame()">Start</button>
+    </div>
+  </div>
+
+  <script>
+    const game = {
+      state: 'loading',
+      playerName: '',
+      quest: ''
+    };
+
+    const scene = document.getElementById('scene');
+    const buttons = document.getElementById('buttons');
+    const message = document.getElementById('message');
+
+    let musicCtx = null;
+
+    function playBeepTune() {
+      if (!musicCtx) musicCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const melody = [440, 660, 550, 740, 660, 880];
+      let t = 0;
+      melody.forEach(freq => {
+        const osc = musicCtx.createOscillator();
+        const gain = musicCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(musicCtx.destination);
+        gain.gain.setValueAtTime(0.1, musicCtx.currentTime + t);
+        osc.start(musicCtx.currentTime + t);
+        osc.stop(musicCtx.currentTime + t + 0.2);
+        t += 0.3;
+      });
+      setTimeout(playBeepTune, t * 1000);
+    }
+
+    function setScene(image, text = '', btns = []) {
+      scene.src = image;
+      message.innerHTML = `<p>${text}</p>`;
+      buttons.innerHTML = '';
+      btns.forEach(btn => {
+        const b = document.createElement('button');
+        b.textContent = btn.label;
+        b.onclick = btn.action;
+        buttons.appendChild(b);
+      });
+    }
+
+    function startGame() {
+      playBeepTune();
+      setScene("opening_desert.png",
+        "You stand at a sandy crossroads. The air is dry, your socks are itchy. You must choose your fate.",
+        [
+          { label: "Go Left", action: goLeft },
+          { label: "Go Right", action: goRight },
+          { label: "Go Forward", action: goForward }
+        ]
+      );
+    }
+
+    function goForward() {
+      setScene("death_desert.png", "Oh dear. A scorpion has stung you in a very inconvenient location.<br><strong>You have perished in the sand.</strong>", [
+        { label: "Try Again", action: startGame }
+      ]);
+    }
+
+    function goLeft() {
+      setScene("spidercave.png", "A giant spider glares at you with too many eyes. There's only one way to go now...", [
+        { label: "Go Forward", action: spiderForward }
+      ]);
+    }
+
+    function spiderForward() {
+      setScene("death_spider.png", "You have been enthusiastically consumed by a spider. You were delicious.<br><strong>Alas, your quest ends here.</strong>", [
+        { label: "Try Again", action: startGame }
+      ]);
+    }
+
+    function goRight() {
+      setScene("bridgekeeper_first.png",
+        "Bridgekeeper: Stop! Who would cross the Bridge of Death must answer me these questions three, ere the other side he see.",
+        [
+          { label: "I'm not afraid", action: askName }
+        ]
+      );
+    }
+
+    function askName() {
+      const name = prompt("Bridgekeeper: What... is your name?");
+      if (!name) return askName();
+      game.playerName = name;
+      askQuest();
+    }
+
+    function askQuest() {
+      const quest = prompt(`Bridgekeeper: ${game.playerName}, what... is your quest?`);
+      if (!quest) return askQuest();
+      game.quest = quest;
+      askSwallow();
+    }
+
+    function askSwallow() {
+      alert("Bridgekeeper: What... is the air-speed velocity of an unladen swallow?");
+      alert("You: What do you mean? An African or European swallow?");
+      alert("Bridgekeeper: Huh? I... I don’t know that! *gets yeeted into the abyss*");
+
+      setScene("bridgekeeper_flyingoff.png", "The Bridgekeeper vanishes into the Gorge of Eternal Peril with a Wilhelm scream.", [
+        { label: "Go Forward", action: reachGold }
+      ]);
+    }
+
+    function reachGold() {
+      setScene("potofgold.png", "You made it across! <strong>The pot of gold is yours!</strong><br>And also some blisters, but mostly gold.");
+    }
+  </script>
+</body>
+</html>
