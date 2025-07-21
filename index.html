@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>The Sands of Fortune</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Georgia, serif;
+      background-color: #111;
+      color: #f5f5dc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    #game {
+      width: 90%;
+      max-width: 768px;
+      margin: 20px auto;
+      text-align: center;
+    }
+    img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    .btn-row {
+      margin: 20px 0;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #333;
+      color: #f5f5dc;
+      border: 2px solid #f5f5dc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <img id="scene" src="loadingscreen.png" alt="Loading screen" />
+    <div class="btn-row" id="buttons"></div>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const game = {
+      state: 'loading',
+      playerName: '',
+      quest: ''
+    };
+
+    const scene = document.getElementById('scene');
+    const buttons = document.getElementById('buttons');
+    const message = document.getElementById('message');
+
+    function playBeepTune() {
+      const context = new (window.AudioContext || window.webkitAudioContext)();
+      const melody = [440, 660, 550, 740, 660, 880]; // Hz
+      let t = 0;
+      melody.forEach((freq, i) => {
+        const osc = context.createOscillator();
+        const gain = context.createGain();
+        osc.type = 'square';
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(context.destination);
+        gain.gain.setValueAtTime(0.1, context.currentTime + t);
+        osc.start(context.currentTime + t);
+        osc.stop(context.currentTime + t + 0.2);
+        t += 0.3;
+      });
+      setTimeout(playBeepTune, t * 1000); // loop
+    }
+
+    function setScene(image, text = '', btns = []) {
+      scene.src = image;
+      message.innerHTML = `<p>${text}</p>`;
+      buttons.innerHTML = '';
+      btns.forEach(btn => {
+        const b = document.createElement('button');
+        b.textContent = btn.label;
+        b
